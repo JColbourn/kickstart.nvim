@@ -102,7 +102,7 @@ vim.g.have_nerd_font = true
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -664,7 +664,7 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        pyright = {},
+        basedpyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -752,7 +752,7 @@ require('lazy').setup({
           return nil
         else
           return {
-            timeout_ms = 500,
+            timeout_ms = 3000,
             lsp_format = 'fallback',
           }
         end
@@ -762,6 +762,7 @@ require('lazy').setup({
         -- Conform can also run multiple formatters sequentially
         python = { 'isort', 'black' },
         javascript = { 'prettier' },
+        sql = { 'sqlfluff' },
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
@@ -872,20 +873,61 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'EdenEast/nightfox.nvim',
+    'catppuccin/nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('nightfox').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
+      -- @diagnostic disable-next-line: missing-fields
+      require('catppuccin').setup {
+        flavour = 'mocha',
+        no_italic = true,
+        transparent_background = false,
+        custom_highlights = function(colors)
+          return {
+            ['@string'] = { fg = '#CE9178' },
+
+            ['@keyword'] = { fg = '#C586C0', bold = true },
+            ['@keyword.function'] = { fg = '#569CD6', bold = true },
+            ['@keyword.import'] = { fg = '#C586C0', bold = false },
+            ['@keyword.return'] = { fg = '#C586C0' },
+            ['@keyword.conditional'] = { fg = '#C586C0' },
+            ['@include'] = { fg = '#D4AC5D', bold = true },
+
+            ['@function'] = { fg = '#DCDCAA' },
+            ['@function.call'] = { fg = '#DCDCAA' },
+            ['@function.method'] = { fg = '#DCDCAA' },
+            ['@function.method.call'] = { fg = '#DCDCAA' },
+
+            ['@type'] = { fg = '#4EC9B0', bold = true },
+            ['@type.builtin'] = { fg = '#4EC9B0', bold = true },
+            ['@type.definition'] = { fg = '#4EC9B0', bold = true },
+
+            ['@constant'] = { fg = '#9CDCFE' },
+            ['@constant.builtin'] = { fg = '#569CD6' },
+            ['@number'] = { fg = '#B5CEA8' },
+            ['@boolean'] = { bold = true },
+
+            ['@variable'] = { fg = '#72ecff' },
+            ['@parameter'] = { fg = '#72d7ff' },
+
+            ['@comment'] = { fg = '#6A9955', italic = true },
+            ['@module'] = { fg = '#4EC9B0' },
+          }
+        end,
+        color_overrides = {
+          mocha = {
+            base = '#181824',
+            mantle = '#12121b',
+            crust = '#0b0b13',
+          },
+        },
+        integrations = {
+          telescope = {
+            enabled = true,
+            style = 'nvchad',
+          },
         },
       }
-
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'carbonfox'
+      vim.cmd.colorscheme 'catppuccin'
     end,
   },
 
@@ -966,16 +1008,28 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
+  {
+    'rcarriga/nvim-notify',
+    config = function()
+      vim.notify = require 'notify'
+    end,
+  },
+  {
+    'm4xshen/hardtime.nvim',
+    lazy = false,
+    dependencies = { 'MunifTanjim/nui.nvim' },
+    opts = {},
+  },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
@@ -1003,5 +1057,6 @@ require('lazy').setup({
   },
 })
 
+vim.lsp.set_log_level 'debug'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
